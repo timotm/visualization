@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Kansanedustajien &auml;&auml;nestyksi&auml;</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+                        canvas {
+			    position: fixed;
+			    top: 0px;
+                        }
+			body {
+			    background-color: white;
+			    margin: 0px;
+			}
+                        #container {
+			    float: left;
+			    width: 80%;
+			}
+                        #sidebar {
+			    float: right;
+			    width: 20%;
+			}
+                        .mpname {
+			    padding-left: 10px;
+			}
+                        .mpname:hover {
+			    font-weight: bold;
+			}
+                        .cabinetname:hover {
+			    font-weight: bold;
+			}
+                        .partyname:hover {
+			    font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="three.js/build/three.min.js"></script>
+
+		<script src="three.js/examples/js/libs/stats.min.js"></script>
+
+		<script src="three.js/examples/js/controls/TrackballControls.js"></script>
+
+		<script>
+
+var container, stats;
+var camera, scene, projector, renderer, controls, light;
+var parties = [
+    {
+	cabinet: true,
+	name: "Kristillisdemokraattinen eduskuntaryhmä",
+	color: 0xfc9400,
+	members: [
+	    { name: "Ahvenjärvi Sauli", coords: [0.08051027, 0.01826962, -0.06124528] },
+	    { name: "Jääskeläinen Jouko", coords: [0.0810169, 0.01933843, -0.05993399] },
+	    { name: "Palm Sari", coords: [0.07939038, 0.01146167, -0.05513555] },
+	    { name: "Rauhala Leena", coords: [0.08023127, 0.01505108, -0.05323276] },
+	    { name: "Räsänen Päivi", coords: [0.07922894, 0.01350613, -0.05664873] },
+	    { name: "Östman Peter", coords: [0.08087815, 0.01795353, -0.05681544] },
+	]
+    },
+    {
+	cabinet: false,
+	name: "Keskustan eduskuntaryhmä",
+	color: 0x22652B,
+	members: [
+	    { name: "Alatalo Mikko", coords: [0.0232626, -0.17588941, -0.0483634] },
+	    { name: "Anttila Sirkka-Liisa", coords: [  0.02874564 , -0.17340975 , -0.00604071 ] },
+	    { name: "Hautala Lasse", coords: [  0.01336922 , -0.17527975 ,  0.02013457 ] },
+	    { name: "Kaikkonen Antti", coords: [  0.01971215 , -0.16420422 , -0.02284487 ] },
+	    { name: "Kalli Timo", coords: [  0.04300973 , -0.16705505 , -0.00266599 ] },
+	    { name: "Kalmari Anne", coords: [  0.03096195 , -0.17835257 ,  0.00073654 ] },
+	    { name: "Katainen Elsi", coords: [  0.02711577 , -0.17531112 , -0.03870554 ] },
+	    { name: "Kerola Inkeri", coords: [  0.03202018 , -0.18572441 , -0.01494427 ] },
+	    { name: "Kiviniemi Mari", coords: [  0.03861631 , -0.17535901 , -0.00503707 ] },
+	    { name: "Kiviranta Esko", coords: [  0.01713256 , -0.17131772 , -0.02979213 ] },
+	    { name: "Komi Katri", coords: [  0.02560424 , -0.13002593 ,  0.01042815 ] },
+	    { name: "Korhonen Timo V", coords: [  0.01277889 , -0.11757989 , -0.05480513 ] },
+	    { name: "Kääriäinen Seppo", coords: [  0.02442985 , -0.17598208 , -0.04248454 ] },
+	    { name: "Lehtomäki Paula", coords: [ -0.00222002 , -0.01823831 ,  0.02392635 ] },
+	    { name: "Leppä Jari", coords: [  0.02811006 , -0.17762227 , -0.04148164 ] },
+	    { name: "Lintilä Mika", coords: [   0.0376984 , -0.17457789 ,  0.00953464 ] },
+	    { name: "Lohi Markus", coords: [  0.02266154 , -0.17375396 ,  -0.0008237 ] },
+	    { name: "Maijala Eeva-Maria", coords: [  0.01840067 , -0.15817093 ,  0.00630433 ] },
+	    { name: "Paloniemi Aila", coords: [  0.02444044 , -0.17715549 , -0.00634605 ] },
+	    { name: "Pekkarinen Mauri", coords: [  0.01762757 , -0.11952245 ,  0.00028477 ] },
+	    { name: "Pirttilahti Arto", coords: [  0.01017535 , -0.15669407 ,  -0.0224531 ] },
+	    { name: "Puumala Tuomo", coords: [  0.01885884 , -0.17730454 ,  0.01838465 ] },
+	    { name: "Rantakangas Antti", coords: [   0.0341214 , -0.17905461 , -0.00243639 ] },
+	    { name: "Rehula Juha", coords: [  0.03550934 ,  -0.1816988 , -0.02033211 ] },
+	    { name: "Reijonen Eero", coords: [  0.01501037 , -0.15197147 , -0.05359707 ] },
+	    { name: "Rossi Markku", coords: [  0.02419831 , -0.16181846 , -0.05696591 ] },
+	    { name: "Rundgren Simo", coords: [  0.01167197 , -0.16864615 , -0.01821936 ] },
+	    { name: "Saarikko Annika", coords: [  0.02775565 , -0.17792148 ,  0.00589144 ] },
+	    { name: "Savola Mikko", coords: [ -0.00887904 , -0.14888107 ,  0.03084737 ] },
+	    { name: "Sipilä Juha", coords: [  0.03534926 , -0.18573854 , -0.02046173 ] },
+	    { name: "Tiilikainen Kimmo", coords: [  0.02999555 , -0.18502854 , -0.02725757 ] },
+	    { name: "Torniainen Ari", coords: [  0.02477243 , -0.18018215 , -0.00151768 ] },
+	    { name: "Tölli Tapani", coords: [  0.02750538 , -0.18848654 , -0.01807218 ] },
+	    { name: "Vehkaperä Mirja", coords: [  0.02680963 , -0.18986625 , -0.00627956 ] },
+	    { name: "Vehviläinen Anu", coords: [  0.00417824 , -0.06201691 , -0.00887743 ] },
+	]
+    },
+    {
+	cabinet: true,
+	name: "Kansallisen Kokoomuksen eduskuntaryhmä",
+	color: 0x11628A,
+	members: [
+	    { name: "Autto Heikki", coords: [0.0805014, 0.01409023, -0.05565264] },
+	    { name: "Eestilä Markku", coords: [  0.07962139 ,  0.01555892 , -0.05465793 ] },
+	    { name: "Grahn-Laasonen Sanni", coords: [  0.08046425 ,  0.01847467 , -0.05929311 ] },
+	    { name: "Harkimo Leena", coords: [  0.08055768 ,  0.01814355 , -0.06076039 ] },
+	    { name: "Heinonen Timo", coords: [   0.0797359 ,  0.01051546 ,   -0.049505 ] },
+	    { name: "Hemmilä Pertti", coords: [  0.07778906 ,  0.01761131 , -0.03823449 ] },
+	    { name: "Holmlund Anne", coords: [  0.08079598 ,  0.01998286 , -0.05679126 ] },
+	    { name: "Häkämies Jyri", coords: [  0.06509009 ,  0.02227885 ,  0.02675878 ] },
+	    { name: "Jaskari Harri", coords: [  0.07956852 ,  0.01476828 , -0.04045871 ] },
+	    { name: "Jokinen Kalle", coords: [   0.0798706 ,  0.01446879 , -0.05620791 ] },
+	    { name: "Kanerva Ilkka", coords: [  0.07578793 ,  0.00633978 , -0.06114228 ] },
+	    { name: "Katainen Jyrki", coords: [  0.06441352 ,  0.02438629 ,  0.01918652 ] },
+	    { name: "Kataja Sampsa", coords: [  0.02705413 ,   0.0497518 ,  -0.0660669 ] },
+	    { name: "Kauma Pia", coords: [  0.07902095 ,  0.01603161 , -0.05254247 ] },
+	    { name: "Kiuru Pauli", coords: [  0.08122475 ,   0.0188033 , -0.05824208 ] },
+	    { name: "Kopra Jukka", coords: [  0.07893449 ,  0.01017957 , -0.04343922 ] },
+	    { name: "Kurvinen Esko", coords: [  0.07971031 ,  0.01473284 , -0.05393337 ] },
+	    { name: "Lauslahti Sanna", coords: [  0.07902559 ,  0.00599233 , -0.04218031 ] },
+	    { name: "Lehti Eero", coords: [  0.07978799 ,  0.01302925 , -0.04079699 ] },
+	    { name: "Matikainen-Kallström Marjo", coords: [  0.07950579 ,  0.01413389 , -0.04411116 ] },
+	    { name: "Mäkelä Outi", coords: [  0.07889474 ,  0.01962759 , -0.04895985 ] },
+	    { name: "Mäkinen Tapani", coords: [  0.06837994 ,  0.00674219 , -0.04293146 ] },
+	    { name: "Männistö Lasse", coords: [   0.0758515 ,  0.01023264 , -0.05862254 ] },
+	    { name: "Mäntymaa Markku", coords: [  0.07855981 ,  0.01786551 , -0.04971845 ] },
+	    { name: "Orpo Petteri", coords: [  0.05625717 , -0.00879267 , -0.03353028 ] },
+	    { name: "Pelkonen Jaana", coords: [  0.08031402 ,   0.0171665 , -0.05937192 ] },
+	    { name: "Ravi Pekka", coords: [  0.06622736 ,  0.02827929 ,  0.01469714 ] },
+	    { name: "Risikko Paula", coords: [  0.06237731 ,  0.02865557 ,  0.02322957 ] },
+	    { name: "Salolainen Pertti", coords: [  0.06400373 ,  0.02808918 ,  0.01043055 ] },
+	    { name: "Sankelo Janne", coords: [  0.07950839 ,  0.00956082 ,  -0.0410154 ] },
+	    { name: "Sarkomaa Sari", coords: [  0.07999869 ,   0.0182459 , -0.05886654 ] },
+	    { name: "Sasi Kimmo", coords: [   0.0645093 ,  0.02262523 ,   0.0371887 ] },
+	    { name: "Satonen Arto", coords: [  0.08116481 ,  0.01897173 , -0.06076927 ] },
+	    { name: "Stubb Alexander", coords: [  0.07828739 ,  0.00663126 , -0.03951126 ] },
+	    { name: "Suutari Eero", coords: [   0.0783005 ,  0.00864494 ,  -0.0428899 ] },
+	    { name: "Toivakka Lenita", coords: [  0.07852932 ,   0.0145781 , -0.05712702 ] },
+	    { name: "Tolvanen Kari", coords: [  0.08069746 ,  0.01949769 , -0.06039289 ] },
+	    { name: "Vahasalo Raija", coords: [  0.07828672 ,  0.01765639 , -0.05895094 ] },
+	    { name: "Vapaavuori Jan", coords: [  0.02179272 ,  0.01424789 , -0.12860865 ] },
+	    { name: "Vikman Sofia", coords: [  0.08001725 ,   0.0151113 , -0.05394125 ] },
+	    { name: "Virkkunen Henna", coords: [  0.08002108 ,  0.01687548 , -0.04603444 ] },
+	    { name: "Virolainen Anne-Mari", coords: [  0.07792731 ,  0.01190512 , -0.05230697 ] },
+	    { name: "Wallinheimo Sinuhe", coords: [  0.07872531 ,   0.0083076 , -0.03662341 ] },
+	    { name: "Zyskowicz Ben", coords: [  0.08025571 ,  0.01954897 , -0.05709989 ] },
+	]
+    },
+    {
+	cabinet: false,
+	name: "Perussuomalaisten eduskuntaryhmä",
+	color: 0xFDDD45,
+	members: [
+	    { name: "Eerola Juho", coords: [-0.08721666, 0.00501171, -0.10880851] },
+	    { name: "Elomaa Ritva", coords: [ -0.08441153 ,  0.00665597 , -0.10915852 ] },
+	    { name: "Hakkarainen Teuvo", coords: [ -0.08141391 ,   0.0032085 , -0.08125676 ] },
+	    { name: "Halla-aho Jussi", coords: [ -0.08269948 , -0.03768933 ,  -0.2229236 ] },
+	    { name: "Heikkilä Lauri", coords: [ -0.08032056 ,  0.00507433 , -0.06814388 ] },
+	    { name: "Hirvisaari James", coords: [ -0.08882297 ,  0.00456237 , -0.11907771 ] },
+	    { name: "Hongisto Reijo", coords: [ -0.08195599 ,  0.00288792 , -0.12665327 ] },
+	    { name: "Immonen Olli", coords: [ -0.08699627 , -0.01842702 , -0.14782805 ] },
+	    { name: "Jalonen Ari", coords: [ -0.08860403 ,  0.00357141 ,  -0.1265355 ] },
+	    { name: "Joutsenlahti Anssi", coords: [ -0.07788888 ,  0.00482191 ,  -0.0748213 ] },
+	    { name: "Jurva Johanna", coords: [ -0.09261504 ,  0.00063301 ,   -0.145491 ] },
+	    { name: "Juvonen Arja", coords: [ -0.08032046 ,   -0.029894 ,  -0.2204788 ] },
+	    { name: "Jääskeläinen Pietari", coords: [ -0.07935542 , -0.00161068 , -0.06577087 ] },
+	    { name: "Kettunen Pentti", coords: [ -0.08463703 ,  0.00139517 , -0.12055551 ] },
+	    { name: "Kivelä Kimmo", coords: [ -0.07915402 ,  0.00066103 , -0.08851244 ] },
+	    { name: "Kokko Osmo", coords: [  -0.0809724 ,  0.00812862 , -0.10268608 ] },
+	    { name: "Koskela Laila", coords: [ -0.08594757 ,  0.00339058 , -0.12550093 ] },
+	    { name: "Lindström Jari", coords: [ -0.09053833 ,  0.00266132 , -0.14468904 ] },
+	    { name: "Lohela Maria", coords: [ -0.07057042 ,  0.03596594 , -0.12947333 ] },
+	    { name: "Louhelainen Anne", coords: [ -0.08695871 ,  0.00770421 , -0.12399862 ] },
+	    { name: "Mattila Pirkko", coords: [ -0.08375362 ,  0.00379482 , -0.11281299 ] },
+	    { name: "Mäkipää Lea", coords: [ -0.08668734 ,  0.00341631 , -0.13004477 ] },
+	    { name: "Mäntylä Hanna", coords: [ -0.09275948 ,   0.0020602 , -0.13525621 ] },
+	    { name: "Mölsä Martti", coords: [ -0.08778276 ,  0.00594278 , -0.12717446 ] },
+	    { name: "Niikko Mika", coords: [ -0.09278423 ,  -0.0066266 , -0.18839261 ] },
+	    { name: "Niinistö Jussi", coords: [ -0.09282952 ,  0.00092899 , -0.14558249 ] },
+	    { name: "Oinonen Pentti", coords: [  -0.0559908 , -0.00137095 , -0.16831129 ] },
+	    { name: "Packalén Tom", coords: [ -0.08812925 ,  0.00315184 , -0.15087238 ] },
+	    { name: "Ruohonen-Lerner Pirkko", coords: [ -0.08537689 ,  0.00365357 , -0.11651918 ] },
+	    { name: "Saarakkala Vesa-Matti", coords: [ -0.05825621 , -0.02746118 ,  0.00618084 ] },
+	    { name: "Soini Timo", coords: [  -0.0820264 ,  0.00248274 ,  -0.1096076 ] },
+	    { name: "Soukola Ismo", coords: [ -0.07921804 ,  0.00633291 , -0.10254308 ] },
+	    { name: "Tolppanen Maria", coords: [ -0.07753515 ,   0.0083143 , -0.13449957 ] },
+	    { name: "Tossavainen Reijo", coords: [ -0.08038232 ,  0.00584544 , -0.07932914 ] },
+	    { name: "Turunen Kaj", coords: [ -0.07896214 ,   0.0020127 , -0.10661997 ] },
+	    { name: "Tuupainen Kauko", coords: [ -0.08669619 ,  0.00438083 , -0.11531846 ] },
+	    { name: "Virtanen Pertti", coords: [ -0.08464812 ,  0.00282288 , -0.10555642 ] },
+	    { name: "Vähämäki Ville", coords: [ -0.09477223 ,   0.0004129 , -0.16434831 ] },
+	    { name: "Väätäinen Juha", coords: [ -0.08879669 ,  0.01075428 , -0.12705394 ] },
+	]
+    },
+    {
+	cabinet: true,
+	name: "Ruotsalainen eduskuntaryhmä",
+	color: 0xF0291B,
+	members: [
+	    { name: "Blomqvist Thomas", coords: [0.07896484, 0.01587465, -0.05022861] },
+	    { name: "Gestrin Christina", coords: [  0.07819155 ,  0.00701767 , -0.02122924 ] },
+	    { name: "Gästgivars Lars Erik", coords: [  0.07896253 ,  0.01628555 ,  -0.0445071 ] },
+	    { name: "Henriksson Anna-Maja", coords: [  0.04077541 ,  0.02854946 , -0.12651399 ] },
+	    { name: "Nauclér Elisabeth", coords: [    0.078292 ,  0.01610039 , -0.05700046 ] },
+	    { name: "Nylander Mikaela", coords: [  0.07751472 ,  0.00986767 , -0.05369248 ] },
+	    { name: "Nylund Mats", coords: [  0.07972417 ,  0.01090847 , -0.04255084 ] },
+	    { name: "Thors Astrid", coords: [   0.0609744 ,  0.02457602 ,  0.04526109 ] },
+	    { name: "Wallin Stefan", coords: [  0.07838484 ,  0.01663343 ,  -0.0374679 ] },
+	    { name: "Wideroos Ulla-Maj", coords: [  0.07654827 ,  0.01490493 , -0.04427528 ] },
+	]
+    },
+    {
+	cabinet: true,
+	name: "Sosiaalidemokraattinen eduskuntaryhmä",
+	color: 0xDF1A2D,
+	members: [
+	    { name: "Backman Jouni", coords: [0.07982672, 0.01759585, -0.0606192] },
+	    { name: "Eloranta Eeva-Johanna", coords: [  0.07892375 ,  0.01021505 , -0.04951415 ] },
+	    { name: "Feldt-Ranta Maarit", coords: [  0.07884126 ,  0.01270296 ,  -0.0444021 ] },
+	    { name: "Filatov Tarja", coords: [  0.06474526 ,  0.02456635 ,  0.02600439 ] },
+	    { name: "Gustafsson Jukka", coords: [  0.07986399 ,  0.01571576 , -0.05707653 ] },
+	    { name: "Guzenina-Richardson Maria", coords: [  0.08026203 ,  0.01518281 , -0.05011696 ] },
+	    { name: "Hiltunen Rakel", coords: [    0.078547 ,  0.01521672 , -0.05139535 ] },
+	    { name: "Huovinen Susanna", coords: [   0.0767237 ,  0.01325856 , -0.04233783 ] },
+	    { name: "Ihalainen Lauri", coords: [  0.06507735 ,  0.02286294 ,  0.02827896 ] },
+	    { name: "Jungner Mikael", coords: [  0.07044668 ,  0.00656048 , -0.02668324 ] },
+	    { name: "Kantola Ilkka", coords: [  0.08054065 ,  0.01627981 , -0.06117946 ] },
+	    { name: "Karhu Saara", coords: [  0.07982363 ,  0.01512787 , -0.04115476 ] },
+	    { name: "Kari Mika", coords: [  0.07830009 ,  0.01604708 , -0.05104521 ] },
+	    { name: "Kiljunen Anneli", coords: [  0.07928009 ,  0.01775986 , -0.05605269 ] },
+	    { name: "Kiuru Krista", coords: [  0.07851669 ,  0.00889597 , -0.03543625 ] },
+	    { name: "Koskinen Johannes", coords: [  0.07824188 ,  0.00768265 , -0.04581024 ] },
+	    { name: "Kumpula-Natri Miapetra", coords: [  0.07602991 ,  0.01869804 , -0.06214785 ] },
+	    { name: "Kuusisto Merja", coords: [  0.07790369 ,  0.01594957 , -0.06144734 ] },
+	    { name: "Kymäläinen Suna", coords: [  0.07600948 ,  0.01108965 , -0.03488104 ] },
+	    { name: "Kärnä Jukka", coords: [   0.0806659 ,   0.0142863 , -0.04162679 ] },
+	    { name: "Lindtman Antti", coords: [  0.02149325 ,  0.01358057 , -0.12893708 ] },
+	    { name: "Lipponen Päivi", coords: [  0.07766539 ,  0.01914759 , -0.04829804 ] },
+	    { name: "Myller Riitta", coords: [  0.07335161 ,  0.01076236 , -0.05713276 ] },
+	    { name: "Mäkisalo-Ropponen Merja", coords: [  0.06564974 ,   0.0283585 ,  0.00928575 ] },
+	    { name: "Ojala-Niemelä Johanna", coords: [  0.07887289 ,  0.01659559 , -0.04341296 ] },
+	    { name: "Paasio Heli", coords: [  0.06302838 ,  0.01351018 ,  0.04037214 ] },
+	    { name: "Paatero Sirpa", coords: [  0.06040657 ,  0.01916006 ,  0.03129865 ] },
+	    { name: "Peltonen Tuula", coords: [  0.07830876 ,  0.00466005 , -0.03905675 ] },
+	    { name: "Piirainen Raimo", coords: [  0.07713341 ,  0.01243237 , -0.04243833 ] },
+	    { name: "Rajamäki Kari", coords: [  0.07451604 ,  0.01404898 , -0.06120778 ] },
+	    { name: "Saarinen Matti", coords: [   0.0619046 ,  0.02684004 ,  0.02161578 ] },
+	    { name: "Salonen Kristiina", coords: [  0.07914651 ,  0.01050167 ,  -0.0484783 ] },
+	    { name: "Skinnari Jouko", coords: [  0.07746602 ,  0.00940858 , -0.03679898 ] },
+	    { name: "Taimela Katja", coords: [  0.07974318 ,  0.01829007 , -0.05278469 ] },
+	    { name: "Tainio Hanna", coords: [  0.08080572 ,  0.01449715 ,  -0.0488568 ] },
+	    { name: "Tuomioja Erkki", coords: [  0.02175025 ,  0.03308448 , -0.02555364 ] },
+	    { name: "Tuppurainen Tytti", coords: [  0.08054296 ,   0.0175046 , -0.06297264 ] },
+	    { name: "Urpilainen Jutta", coords: [  0.07674786 ,  0.01218619 ,  -0.0340629 ] },
+	    { name: "Viitamies Pauliina", coords: [  0.07846888 ,  0.01625541 , -0.05626919 ] },
+	    { name: "Viitanen Pia", coords: [  0.08053444 ,  0.01970622 , -0.05602302 ] },
+	    { name: "Väätäinen Tuula", coords: [  0.07732377 ,  0.01597564 , -0.06176419 ] },
+	]
+    },
+    {
+	cabinet: true,
+	name: "Vasemmistoliiton eduskuntaryhmä",
+	color: 0xBF2021,
+	members: [
+	    { name: "Arhinmäki Paavo", coords: [0.07942922, 0.01536372, -0.0523709] },
+	    { name: "Kalliorinne Risto", coords: [  0.07945603 ,  0.01876542 , -0.05733055 ] },
+	    { name: "Kontula Anna", coords: [  0.06471727 ,  0.02967421 ,  0.02283232 ] },
+	    { name: "Korhonen Martti", coords: [  0.08046358 ,   0.0164083 , -0.05561737 ] },
+	    { name: "Kyllönen Merja", coords: [  0.07945893 ,  0.00851306 , -0.04577029 ] },
+	    { name: "Lapintie Annika", coords: [  0.08014719 ,    0.016966 , -0.05555469 ] },
+	    { name: "Modig Silvia", coords: [   0.0778525 ,  0.00578124 , -0.03382214 ] },
+	    { name: "Myllykoski Jari", coords: [  0.07506369 ,  0.00740624 , -0.05533856 ] },
+	    { name: "Pekonen Aino-Kaisa", coords: [  0.07848081 ,    0.018673 , -0.06274743 ] },
+	    { name: "Tiainen Eila", coords: [  0.08069037 ,   0.0195566 , -0.06101746 ] },
+	    { name: "Uotila Kari", coords: [  0.07827438 ,  0.01912245 , -0.05407002 ] },
+	    { name: "Virtanen Erkki", coords: [   0.0771966 ,  0.02255917 , -0.05599627 ] },
+	]
+    },
+    {
+	cabinet: true,
+	name: "Vihreä eduskuntaryhmä",
+	color: 0x48AE18,
+	members: [
+	    { name: "Alanko-Kahiluoto Outi", coords: [0.07851397, 0.01795468, -0.05244407] },
+	    { name: "Brax Tuija", coords: [  0.08129568 ,  0.01969886 , -0.06008845 ] },
+	    { name: "Haapanen Satu", coords: [  0.07700728 ,   0.0116845 , -0.02517599 ] },
+	    { name: "Haavisto Pekka", coords: [  0.08059589 ,  0.01540214 , -0.05474347 ] },
+	    { name: "Karimäki Johanna", coords: [  0.08055581 ,  0.01572458 , -0.05423052 ] },
+	    { name: "Niinistö Ville", coords: [  0.06484367 ,  0.02262457 ,  0.03143243 ] },
+	    { name: "Sinnemäki Anni", coords: [  0.00118038 ,  0.00489556 , -0.00583849 ] },
+	    { name: "Soininvaara Osmo", coords: [  0.07579084 ,  0.01419611 , -0.03842657 ] },
+	    { name: "Toivola Jani", coords: [  0.07900192 ,  0.01081342 ,  -0.0498757 ] },
+	    { name: "Tynkkynen Oras", coords: [  0.08003016 ,  0.01392602 , -0.04475407 ] },
+	]
+    },
+    {
+	cabinet: false,
+	name: "Vasenryhmä",
+	color: 0x777777,
+	members: [
+	    { name: "Mustajärvi Markus", coords: [-0.06940104, -0.0031642, -0.00642898] },
+	    { name: "Yrttiaho Jyrki", coords: [ -0.06895423 , -0.00123244 ,  -0.0051678 ] },
+	]
+    },
+
+    ];
+var PI2 = Math.PI * 2;
+
+var programFill = function ( context ) {
+    context.beginPath();
+    context.arc( 0, 0, 1, 0, PI2, true );
+    context.closePath();
+    context.fill();
+}
+
+var programStroke = function ( context ) {
+    context.lineWidth = 0.05;
+    context.beginPath();
+    context.arc( 0, 0, 1, 0, PI2, true );
+    context.closePath();
+    context.stroke();
+}
+
+var mouse = { x: 0, y: 0 }, INTERSECTED;
+
+init();
+animate();
+
+function scaleSphere(parties, p, m, scale) {
+    parties[p].members[m].sphere.scale.x = scale;
+    parties[p].members[m].sphere.scale.y = scale;
+    parties[p].members[m].sphere.scale.z = scale;
+    render();
+}
+
+function scaleParty(party, scale)
+{
+    party.members.map(function(member) {
+	if (member.hasOwnProperty('sphere')) {
+	    member.sphere.scale.x = scale;
+	    member.sphere.scale.y = scale;
+	    member.sphere.scale.z = scale;
+	}
+    });
+}
+
+function scalePartyByIndex(parties, p, scale)
+{
+    scaleParty(parties[p], scale);
+    render();
+}
+
+function scaleCabinetOpposition(cabinet, parties, scale)
+{
+    parties.map(function(party) {
+	if (cabinet == party.cabinet) {
+	    scaleParty(party, scale);
+	}
+    });
+    render();
+}
+
+function scaleCabinet(parties, scale)
+{
+    scaleCabinetOpposition(true, parties, scale);
+}
+
+function scaleOpposition(parties, scale)
+{
+    scaleCabinetOpposition(false, parties, scale);
+}
+
+function init() {
+
+    var top = document.createElement('div');
+    document.body.appendChild(top);
+
+    container = document.createElement( 'div' );
+    container.id = 'container';
+    top.appendChild( container );
+
+    var info = document.createElement( 'div' );
+    info.id = 'sidebar';
+    info.onmouseover = function() { controls.enabled = false; };
+    info.onmouseout = function() { controls.enabled = true; };
+    top.appendChild( info );
+    var table = document.createElement('table');
+    info.appendChild(table);
+
+    var tr = document.createElement('tr');
+    table.appendChild(tr);
+    tr.className = 'cabinetrow';
+
+    var td = document.createElement('td');
+    tr.appendChild(td);
+    td.innerHTML = 'Hallitus';
+    td.colSpan = 2;
+    td.className = 'cabinetname';
+    td.onmouseover = function() { scaleCabinet(parties, 2); };
+    td.onmouseout = function() { scaleCabinet(parties, 1); };
+
+    td = document.createElement('td');
+    tr.appendChild(td);
+    td.className = 'cabinetname';
+    td.innerHTML = 'Oppositio';
+    td.colSpan = 2;
+    td.onmouseover = function() { scaleOpposition(parties, 2); };
+    td.onmouseout = function() { scaleOpposition(parties, 1); };
+
+    camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, -1, 1 );
+    camera.position.set( 0, 200, 500 );
+
+    controls = new THREE.TrackballControls( camera );
+
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+
+    controls.noZoom = false;
+    controls.noPan = false;
+
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+
+    controls.keys = [ 65, 83, 68 ];
+
+    controls.addEventListener( 'change', render );
+
+
+    scene = new THREE.Scene();
+
+    var radius = 10, segments = 32, rings = 32;
+    var geom = new THREE.SphereGeometry(radius, segments, rings);
+
+    var partyIndex = 0;
+    parties.map(function(party) {
+	tr = document.createElement('tr');
+	table.appendChild(tr);
+	td = document.createElement('td');
+	tr.appendChild(td);
+	td.className = 'partyname';
+	(function(partyIndex, parties) {
+	    td.onmouseover = function() { scalePartyByIndex(parties, partyIndex, 2); }
+	})(partyIndex, parties);
+	(function(partyIndex, parties) {
+	    td.onmouseout = function() { scalePartyByIndex(parties, partyIndex, 1); };
+	})(partyIndex, parties);
+	td.colSpan = 4;
+	td.innerHTML = "<font color='#" + party.color.toString(16) + "'>&#9608;</font> " + party.name;
+	var sphereMaterial = new THREE.MeshPhongMaterial({ color: party.color });
+
+	var memberIndex = 0;
+	party.members.map(function(member) {
+	    if ((memberIndex % 2) == 0) {
+		tr = document.createElement('tr');
+		table.appendChild(tr);
+	    }
+	    td = document.createElement('td');
+	    tr.appendChild(td);
+	    td.className = 'mpname';
+	    td.colSpan = 2;
+	    td.innerHTML = member.name;
+	    member.sphere = new THREE.Mesh(geom, sphereMaterial);
+
+	    member.sphere.position.x = member.coords[0] * 1000;
+	    member.sphere.position.y = member.coords[1] * 1000;
+	    member.sphere.position.z = member.coords[2] * 1000;
+
+	    (function(p, m) {
+		td.onmouseover = function() {
+		    scaleSphere(parties, p, m, 2);
+		}
+		td.onmouseout = function() {
+		    td.style = "";
+		    scaleSphere(parties, p, m, 1);
+		}
+	    })(partyIndex, memberIndex);
+
+	    scene.add(member.sphere);
+	    memberIndex += 1;
+	});
+	partyIndex += 1;
+    });
+
+    var boxGeom = new THREE.Geometry();
+    boxGeom.vertices.push(new THREE.Vector3(-250, -250, -250));
+    boxGeom.vertices.push(new THREE.Vector3(-250, -250, 250));
+
+    boxGeom.vertices.push(new THREE.Vector3(-250, 250, 250));
+    boxGeom.vertices.push(new THREE.Vector3(-250, 250, -250));
+
+    boxGeom.vertices.push(new THREE.Vector3(-250, -250, -250));
+    boxGeom.vertices.push(new THREE.Vector3(250, -250, -250));
+
+    boxGeom.vertices.push(new THREE.Vector3(250, 250, -250));
+    boxGeom.vertices.push(new THREE.Vector3(-250, 250, -250));
+
+    boxGeom.vertices.push(new THREE.Vector3(250, 250, -250));
+    boxGeom.vertices.push(new THREE.Vector3(250, 250, 250));
+
+    boxGeom.vertices.push(new THREE.Vector3(250, -250, 250));
+    boxGeom.vertices.push(new THREE.Vector3(250, -250, -250));
+
+    boxGeom.vertices.push(new THREE.Vector3(250, -250, 250));
+    boxGeom.vertices.push(new THREE.Vector3(-250, -250, 250));
+
+    boxGeom.vertices.push(new THREE.Vector3(250, -250, 250));
+    boxGeom.vertices.push(new THREE.Vector3(250, 250, 250));
+
+    boxGeom.vertices.push(new THREE.Vector3(-250, 250, 250));
+
+    var box = new THREE.Line(boxGeom, new THREE.LineBasicMaterial( { color: 0x000000,} ) );
+    scene.add(box);
+
+    projector = new THREE.Projector();
+
+    light = new THREE.DirectionalLight( 0xFFFFFF );
+    light.position = camera.position;
+
+    // add to the scene
+    scene.add(light);
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( 0.8*window.innerWidth, 0.8*window.innerHeight );
+
+    container.appendChild( renderer.domElement );
+
+    // stats = new Stats();
+    // stats.domElement.style.position = 'absolute';
+    // stats.domElement.style.top = '0px';
+    // container.appendChild( stats.domElement );
+
+    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+    window.addEventListener( 'resize', onWindowResize, false );
+}
+
+function onWindowResize() {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
+function onDocumentMouseMove( event ) {
+
+    event.preventDefault();
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+}
+
+//
+
+function animate() {
+
+    requestAnimationFrame( animate );
+
+    controls.update();
+    //render();
+
+}
+
+function render() {
+
+    renderer.render( scene, camera );
+    light.position = camera.position;
+    //stats.update();
+}
+
+
+		</script>
+
+	</body>
+</html>
